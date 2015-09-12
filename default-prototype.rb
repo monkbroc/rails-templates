@@ -4,7 +4,7 @@ inject_into_file 'Gemfile', after: "source 'https://rubygems.org'\n" do
   "ruby File.read '.ruby-version'\n\n"
 end
 
-file '.ruby-version', '2.1.0'
+file '.ruby-version', '2.2.3'
 
 gem 'devise'
 gem 'twitter-bootstrap-rails'
@@ -16,11 +16,7 @@ gem_group :production do
   gem 'rails_12factor'
 end
 
-#run 'bundle install'
-
-# Disable strong params
-application 'config.action_controller.permit_all_parameters = true'
-application 'config.action_controller.action_on_unpermitted_parameters = :raise'
+run 'bundle install'
 
 # Read me
 run 'rm README.rdoc'
@@ -29,6 +25,15 @@ file 'README.md', <<-README
 * Rails 4
 * No tests / specs
 * Bootstrap
+
+## Generate new model
+
+```ruby
+rails g scaffold Drink name:string
+rake db:migrate
+rails generate bootstrap:themed Drinks
+```
+
 README
 
 # Bootstrap
@@ -36,6 +41,14 @@ generate "bootstrap:install", "static"
 generate "bootstrap:layout", "application", "fluid"
 copy_file 'prototype/application.html.erb', 'app/views/layouts/application.html.erb'
 copy_file 'prototype/bootstrap_and_overrides.css', 'app/assets/stylesheets/bootstrap_and_overrides.css'
+
+# No scaffold.css
+inject_into_file 'config/application.rb', :after => "Rails::Application\n" do <<-RUBY
+    config.generators do |g|
+      g.stylesheets false
+    end
+RUBY
+end
 
 # Templates
 file 'app/views/shared/_errors.html.erb', <<-ERRORS
@@ -65,14 +78,12 @@ gsub_file 'app/assets/javascripts/application.js', "//= require turbolinks\n", '
 # Clean database.yml
 gsub_file 'config/database.yml', /  username: \S+\n  password:\n/, ''
 
-if yes? 'Is postgres running?'
- rake 'db:create db:migrate'
-end
+rake 'db:create db:migrate'
 
-route 'root to: "application#show"'
+#route 'root to: "application#show"'
 
 # Git
 git :init
 git add: "."
-git commit: "-a -m 'F1 Prototype'"
+git commit: "-a -m 'Initial version'"
 
